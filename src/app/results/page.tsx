@@ -173,7 +173,7 @@ function ResultsContent() {
         ))}
 
         <p className="text-center text-xs text-slate-400">
-          Prices fetched from Amadeus · Last updated {new Date(result.searchedAt).toLocaleTimeString()}
+          Prices scraped from Google Flights · Last updated {new Date(result.searchedAt).toLocaleTimeString()}
           {" · "}Results cached for 1 hour
         </p>
       </div>

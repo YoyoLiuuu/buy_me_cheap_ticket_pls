@@ -37,11 +37,7 @@ export default function Home() {
         </div>
 
         <p className="text-center text-xs text-slate-400">
-          Powered by{" "}
-          <a href="https://developers.amadeus.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
-            Amadeus for Developers
-          </a>{" "}
-          · Prices checked every 6 hours · No account needed
+          Prices scraped from Google Flights · Checked every 6 hours · No account needed
         </p>
       </div>
     </div>

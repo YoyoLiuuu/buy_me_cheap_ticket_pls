@@ -21,11 +21,16 @@ export function LegResults({ legResult, legIndex, currency, flexibility, pricePr
 
   const { leg, offers, cheapestByDate, absoluteCheapest, cheapestOnIdealDates, pricePremiumForIdeal } = legResult;
 
-  const filtered = offers.filter((o) => {
-    if (selectedDate) return o.departureDate === selectedDate;
-    if (filter === "ideal") return o.isIdealDate;
-    return true;
-  });
+  const filtered = offers
+    .filter((o) => {
+      if (selectedDate) return o.departureDate === selectedDate;
+      if (filter === "ideal") return o.isIdealDate;
+      return true;
+    })
+    .sort((a, b) => {
+      if (filter === "cheapest" && a.price > 0 && b.price > 0) return a.price - b.price;
+      return 0;
+    });
 
   const displayed = showAll ? filtered : filtered.slice(0, 5);
   const hasWarnings = offers.some((o) => o.conflictZoneWarnings.length > 0);
@@ -45,10 +50,12 @@ export function LegResults({ legResult, legIndex, currency, flexibility, pricePr
             {flexibility > 0 && " (±extended range)"}
           </p>
         </div>
-        <div className="text-right shrink-0">
-          <div className="text-xl font-bold text-slate-900">{formatPrice(absoluteCheapest, currency)}</div>
-          <div className="text-xs text-slate-500">from (any date)</div>
-        </div>
+        {absoluteCheapest > 0 && (
+          <div className="text-right shrink-0">
+            <div className="text-xl font-bold text-slate-900">{formatPrice(absoluteCheapest, currency)}</div>
+            <div className="text-xs text-slate-500">from (any date)</div>
+          </div>
+        )}
       </div>
 
       {/* Price tradeoff banner */}
