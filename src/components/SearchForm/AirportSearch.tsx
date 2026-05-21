@@ -23,6 +23,7 @@ interface Airport {
 // Individual airports follow.
 const AIRPORTS: Airport[] = [
   // ── City-wide (metro) entries ────────────────────────────────────────────
+  { iata: "YTO", name: "Any Toronto airport", city: "Toronto", country: "Canada", isCity: true, airports: ["YYZ", "YTZ"] },
   { iata: "SEL", name: "Any Seoul airport", city: "Seoul", country: "South Korea", isCity: true, airports: ["ICN", "GMP"] },
   { iata: "TYO", name: "Any Tokyo airport", city: "Tokyo", country: "Japan", isCity: true, airports: ["NRT", "HND"] },
   { iata: "NYC", name: "Any New York airport", city: "New York", country: "USA", isCity: true, airports: ["JFK", "LGA", "EWR"] },

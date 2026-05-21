@@ -3,6 +3,7 @@
 // IATA metropolitan area codes → constituent airport codes.
 // These are official IATA city codes (not airport codes).
 export const METRO_AIRPORTS: Record<string, string[]> = {
+  YTO: ["YYZ", "YTZ"],       // Toronto
   SEL: ["ICN", "GMP"],       // Seoul
   TYO: ["NRT", "HND"],       // Tokyo
   NYC: ["JFK", "LGA", "EWR"], // New York
