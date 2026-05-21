@@ -1,0 +1,40 @@
+name: Price Monitor
+
+on:
+  schedule:
+    # Every 6 hours — 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: "0 0,6,12,18 * * *"
+  workflow_dispatch:
+    inputs:
+      digest:
+        description: "Force send daily digest"
+        type: boolean
+        default: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium + system deps
+        run: npx playwright install chromium --with-deps
+
+      - name: Run price monitor
+        run: npx tsx scripts/monitor.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.APP_URL }}
+          # Set on the 9am UTC run to trigger daily digest
+          DIGEST_RUN: ${{ (github.event.inputs.digest == 'true') && 'true' || '' }}
