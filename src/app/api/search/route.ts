@@ -80,7 +80,7 @@ function buildLinkOffers(
         stops: -1, // unknown
       }],
       validatingCarrierCode: "",
-      deepLink: buildGoogleFlightsUrl(leg.from, leg.to, date, currency),
+      deepLink: buildGoogleFlightsUrl(leg.fromCity, leg.toCity, date, currency),
       conflictZoneWarnings: [],
       departureDate: date,
       isIdealDate: isIdeal,

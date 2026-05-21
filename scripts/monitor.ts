@@ -12,6 +12,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { scrapeFlightsForDate } from "./scrape.js";
 import { sendPriceAlert, sendDailyDigest } from "../src/lib/email.js";
+import { expandAirports } from "../src/lib/flights.js";
 import type { LegParams, SearchFilters, Flexibility, LegResult } from "../src/types/index.js";
 import { addDays, format, parseISO } from "date-fns";
 
@@ -48,18 +49,29 @@ async function scrapeAllLegs(
     const allOffers: import("../src/types/index.js").FlightOffer[] = [];
     const cheapestByDate: Record<string, number> = {};
 
+    // Expand metro codes (e.g. SEL → [ICN, GMP]) so each airport is scraped
+    const fromCodes = expandAirports(leg.from);
+    const toCodes = expandAirports(leg.to);
+
     for (const date of dates) {
-      try {
-        console.log(`  Scraping ${leg.from} → ${leg.to} on ${date}…`);
-        const offers = await scrapeFlightsForDate(page, leg, date, currency, filters);
-        if (offers.length > 0) {
-          cheapestByDate[date] = Math.min(...offers.map((o) => o.price));
-          allOffers.push(...offers);
+      for (const fromCode of fromCodes) {
+        for (const toCode of toCodes) {
+          const expandedLeg: LegParams = { ...leg, from: fromCode, to: toCode };
+          try {
+            console.log(`  Scraping ${fromCode} → ${toCode} on ${date}…`);
+            const offers = await scrapeFlightsForDate(page, expandedLeg, date, currency, filters);
+            if (offers.length > 0) {
+              const cheapest = Math.min(...offers.map((o) => o.price));
+              if (!cheapestByDate[date] || cheapest < cheapestByDate[date]) {
+                cheapestByDate[date] = cheapest;
+              }
+              allOffers.push(...offers);
+            }
+            await new Promise((r) => setTimeout(r, 2000 + Math.random() * 3000));
+          } catch (err) {
+            console.error(`  Failed ${fromCode} → ${toCode} ${date}:`, err);
+          }
         }
-        // Random delay between requests — be a polite scraper
-        await new Promise((r) => setTimeout(r, 2000 + Math.random() * 3000));
-      } catch (err) {
-        console.error(`  Failed ${leg.from} → ${leg.to} ${date}:`, err);
       }
     }
 
@@ -82,6 +94,11 @@ async function scrapeAllLegs(
 }
 
 async function main() {
+  if (!process.env.DATABASE_URL) {
+    console.error("ERROR: DATABASE_URL is not set. Add it to GitHub Actions secrets (Settings → Secrets → Actions).");
+    process.exit(1);
+  }
+
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });

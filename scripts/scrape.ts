@@ -158,7 +158,7 @@ export async function scrapeFlightsForDate(
   currency: string,
   filters: SearchFilters
 ): Promise<FlightOffer[]> {
-  const url = buildGoogleFlightsUrl(leg.from, leg.to, date, currency);
+  const url = buildGoogleFlightsUrl(leg.fromCity || leg.from, leg.toCity || leg.to, date, currency);
 
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 

@@ -102,8 +102,10 @@ export const AIRPORT_COUNTRY_MAP: Record<string, string> = {
   BKK: "TH", DMK: "TH", // Thailand
   KUL: "MY", // Malaysia
   MNL: "PH", // Philippines
-  YYZ: "CA", YVR: "CA", YUL: "CA", YYC: "CA", // Canada
-  JFK: "US", EWR: "US", LAX: "US", ORD: "US", SFO: "US", SEA: "US", YYZ_US: "US",
+  YYZ: "CA", YVR: "CA", YUL: "CA", YYC: "CA", YTZ: "CA", // Canada
+  JFK: "US", EWR: "US", LAX: "US", ORD: "US", SFO: "US", SEA: "US",
+  // IATA metropolitan area codes
+  SEL: "KR", TYO: "JP", NYC: "US", LON: "GB", BJS: "CN", PAR: "FR", OSA: "JP", STO: "SE", MIL: "IT",
   LHR: "GB", LGW: "GB", MAN: "GB", // UK
   CDG: "FR", ORY: "FR", // France
   FRA: "DE", MUC: "DE", // Germany
