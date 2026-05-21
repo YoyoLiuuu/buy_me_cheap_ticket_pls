@@ -7,7 +7,7 @@ export interface LegParams {
   fromCity: string;
   toCity: string;
   earliestDeparture: string; // YYYY-MM-DD
-  latestDeparture: string;
+  arriveBy: string;
   earliestDepartureTime?: string; // HH:MM
   latestDepartureTime?: string;
   earliestArrivalTime?: string;

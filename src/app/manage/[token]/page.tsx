@@ -14,7 +14,7 @@ interface SearchData {
   alertThreshold: number;
   digestEnabled: boolean;
   createdAt: string;
-  legs: Array<{ from: string; to: string; fromCity: string; toCity: string; earliestDeparture: string; latestDeparture: string }>;
+  legs: Array<{ from: string; to: string; fromCity: string; toCity: string; earliestDeparture: string; arriveBy: string }>;
   priceRecords: Array<{ checkedAt: string; cheapestPrice: number; currency: string }>;
   alertLogs: Array<{ sentAt: string; type: string; price: number }>;
 }
@@ -106,7 +106,7 @@ export default function ManagePage() {
                 <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.from}</span>
                 →
                 <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.to}</span>
-                <span className="text-slate-400">{l.earliestDeparture} – {l.latestDeparture}</span>
+                <span className="text-slate-400">depart {l.earliestDeparture} · arrive by {l.arriveBy}</span>
               </div>
             ))}
           </div>

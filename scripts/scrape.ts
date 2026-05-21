@@ -311,7 +311,7 @@ export async function scrapeFlightsForDate(
       deepLink: deepLink || buildGoogleFlightsUrl(leg.from, leg.to, date, currency),
       conflictZoneWarnings: warnings,
       departureDate: date,
-      isIdealDate: date >= leg.earliestDeparture && date <= leg.latestDeparture,
+      isIdealDate: date >= leg.earliestDeparture && date <= leg.arriveBy,
     });
   }
 

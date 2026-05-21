@@ -39,10 +39,10 @@ export function buildCacheKey(
   from: string,
   to: string,
   earliestDeparture: string,
-  latestDeparture: string,
+  arriveBy: string,
   flexibility: number,
   avoidMiddleEast: boolean,
   avoidConflictZones: boolean
 ): string {
-  return `${from}|${to}|${earliestDeparture}|${latestDeparture}|flex${flexibility}|me${avoidMiddleEast}|cz${avoidConflictZones}`;
+  return `${from}|${to}|${earliestDeparture}|${arriveBy}|flex${flexibility}|me${avoidMiddleEast}|cz${avoidConflictZones}`;
 }

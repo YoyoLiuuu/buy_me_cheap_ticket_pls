@@ -21,7 +21,7 @@ const IS_DIGEST_RUN = process.env.DIGEST_RUN === "true" || new Date().getUTCHour
 function getFlexDates(leg: LegParams, flexibility: Flexibility): string[] {
   const range = flexibility === 2 ? 7 : flexibility === 1 ? 2 : 0;
   const earliest = parseISO(leg.earliestDeparture);
-  const latest = parseISO(leg.latestDeparture);
+  const latest = parseISO(leg.arriveBy);
   const dates = new Set<string>();
   let d = earliest;
   while (d <= latest) {

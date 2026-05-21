@@ -10,7 +10,7 @@ const LegSchema = z.object({
   fromCity: z.string(),
   toCity: z.string(),
   earliestDeparture: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  latestDeparture: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  arriveBy: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   earliestDepartureTime: z.string().optional(),
   latestDepartureTime: z.string().optional(),
   earliestArrivalTime: z.string().optional(),
@@ -36,12 +36,12 @@ const SearchSchema = z.object({
 
 function getFlexDates(
   earliestDeparture: string,
-  latestDeparture: string,
+  arriveBy: string,
   flexibility: number
 ): string[] {
   const range = flexibility === 2 ? 7 : flexibility === 1 ? 2 : 0;
   const earliest = parseISO(earliestDeparture);
-  const latest = parseISO(latestDeparture);
+  const latest = parseISO(arriveBy);
   const dates = new Set<string>();
   let d = earliest;
   while (d <= latest) {
@@ -64,7 +64,7 @@ function buildLinkOffers(
   currency: string
 ): FlightOffer[] {
   return dates.map((date, i) => {
-    const isIdeal = date >= leg.earliestDeparture && date <= leg.latestDeparture;
+    const isIdeal = date >= leg.earliestDeparture && date <= leg.arriveBy;
     return {
       id: `link-${leg.from}-${leg.to}-${date}`,
       price: 0, // unknown — user clicks through to see live price
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
     // Build link-based results for each leg (instant — no API call)
     const legResults: LegResult[] = params.legs.map((leg) => {
-      const dates = getFlexDates(leg.earliestDeparture, leg.latestDeparture, params.flexibility);
+      const dates = getFlexDates(leg.earliestDeparture, leg.arriveBy, params.flexibility);
       const offers = buildLinkOffers(leg, dates, params.currency);
 
       return {

@@ -44,9 +44,9 @@ export function LegResults({ legResult, legIndex, currency, flexibility, pricePr
         <div>
           <h3 className="font-bold text-slate-900 text-lg">{idealLabel}</h3>
           <p className="text-sm text-slate-500">
-            {leg.earliestDeparture === leg.latestDeparture
-              ? leg.earliestDeparture
-              : `${leg.earliestDeparture} – ${leg.latestDeparture}`}
+            {leg.earliestDeparture === leg.arriveBy
+              ? `depart ${leg.earliestDeparture}`
+              : `depart ${leg.earliestDeparture} · arrive by ${leg.arriveBy}`}
             {flexibility > 0 && " (±extended range)"}
           </p>
         </div>

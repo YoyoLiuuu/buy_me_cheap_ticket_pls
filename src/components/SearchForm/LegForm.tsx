@@ -56,7 +56,7 @@ export function LegForm({ leg, index, canRemove, onChange, onRemove }: LegFormPr
       {/* Date range */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Earliest departure date</Label>
+          <Label>Earliest departure</Label>
           <Input
             type="date"
             value={leg.earliestDeparture}
@@ -64,11 +64,11 @@ export function LegForm({ leg, index, canRemove, onChange, onRemove }: LegFormPr
           />
         </div>
         <div>
-          <Label>Latest departure date</Label>
+          <Label>Arrive by (date)</Label>
           <Input
             type="date"
-            value={leg.latestDeparture}
-            onChange={(e) => update({ latestDeparture: e.target.value })}
+            value={leg.arriveBy}
+            onChange={(e) => update({ arriveBy: e.target.value })}
           />
         </div>
       </div>

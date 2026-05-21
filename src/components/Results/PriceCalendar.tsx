@@ -29,7 +29,7 @@ export function PriceCalendar({ cheapestByDate, leg, currency, onSelectDate, sel
     return "bg-red-100 text-red-800 hover:bg-red-200";
   }
 
-  const isIdeal = (date: string) => date >= leg.earliestDeparture && date <= leg.latestDeparture;
+  const isIdeal = (date: string) => date >= leg.earliestDeparture && date <= leg.arriveBy;
 
   return (
     <div className="space-y-2">

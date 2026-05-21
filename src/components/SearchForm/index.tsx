@@ -18,7 +18,7 @@ const EMPTY_LEG: LegParams = {
   fromCity: "",
   toCity: "",
   earliestDeparture: "",
-  latestDeparture: "",
+  arriveBy: "",
 };
 
 const DEFAULT_PARAMS: SearchParams = {
@@ -96,7 +96,7 @@ export function SearchForm() {
     try {
       // Validate required fields
       for (const leg of params.legs) {
-        if (!leg.from || !leg.to || !leg.earliestDeparture || !leg.latestDeparture) {
+        if (!leg.from || !leg.to || !leg.earliestDeparture || !leg.arriveBy) {
           throw new Error("Please fill in all departure and arrival cities and dates.");
         }
       }
