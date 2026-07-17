@@ -95,12 +95,14 @@ export async function sendPriceAlert({
       </div>
     </div>`;
 
-  return getResend().emails.send({
+  const { data, error } = await getResend().emails.send({
     from: FROM,
     to: email,
     subject: `✈️ Price drop ${drop}% on ${legStr} — now ${formatPrice(newPrice, currency)}`,
     html,
   });
+  if (error) throw new Error(`Resend rejected price alert to ${email}: ${error.message}`);
+  return data;
 }
 
 export async function sendDailyDigest({
@@ -134,10 +136,12 @@ export async function sendDailyDigest({
       </div>
     </div>`;
 
-  return getResend().emails.send({
+  const { data, error } = await getResend().emails.send({
     from: FROM,
     to: email,
     subject: `✈️ Daily digest — cheapest combo: ${formatPrice(totalCheapest, currency)}`,
     html,
   });
+  if (error) throw new Error(`Resend rejected digest to ${email}: ${error.message}`);
+  return data;
 }
