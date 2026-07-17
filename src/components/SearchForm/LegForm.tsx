@@ -8,19 +8,16 @@ import { Trash2 } from "lucide-react";
 
 interface LegFormProps {
   leg: LegParams;
-  index: number;
+  title: string;
   canRemove: boolean;
   onChange: (updated: LegParams) => void;
   onRemove: () => void;
 }
 
-export function LegForm({ leg, index, canRemove, onChange, onRemove }: LegFormProps) {
+export function LegForm({ leg, title, canRemove, onChange, onRemove }: LegFormProps) {
   function update(patch: Partial<LegParams>) {
     onChange({ ...leg, ...patch });
   }
-
-  const labels = ["Outbound flight", "Connecting flight", "Return flight", `Leg ${index + 1}`];
-  const title = labels[index] ?? `Leg ${index + 1}`;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4">

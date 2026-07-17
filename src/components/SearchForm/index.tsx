@@ -72,20 +72,33 @@ export function SearchForm() {
   }
 
   function setTripType(type: SearchParams["tripType"]) {
-    if (type === "round-trip" && params.legs.length === 1) {
-      // Add return leg with from/to swapped
-      const first = params.legs[0];
-      setParams((p) => ({
-        ...p,
-        tripType: type,
-        legs: [
-          first,
-          { ...EMPTY_LEG, from: first.to, to: first.from, fromCity: first.toCity, toCity: first.fromCity },
-        ],
-      }));
-    } else {
-      setParams((p) => ({ ...p, tripType: type }));
-    }
+    setParams((p) => {
+      if (type === "one-way") {
+        // One-way is a single leg — drop any extra legs that were showing.
+        return { ...p, tripType: type, legs: [p.legs[0]] };
+      }
+      if (type === "round-trip") {
+        // Exactly two legs: keep the outbound, and a return (swap from/to if we
+        // don't already have a second leg from a previous multi-leg selection).
+        const first = p.legs[0];
+        const second = p.legs[1] ?? {
+          ...EMPTY_LEG,
+          from: first.to,
+          to: first.from,
+          fromCity: first.toCity,
+          toCity: first.fromCity,
+        };
+        return { ...p, tripType: type, legs: [first, second] };
+      }
+      // multi-leg keeps whatever legs already exist.
+      return { ...p, tripType: type };
+    });
+  }
+
+  function legTitle(index: number): string {
+    if (params.tripType === "one-way") return "Flight";
+    if (params.tripType === "round-trip") return index === 0 ? "Outbound flight" : "Return flight";
+    return index === 0 ? "Outbound flight" : `Leg ${index + 1}`;
   }
 
   async function handleSearch(e: React.FormEvent) {
@@ -176,7 +189,7 @@ export function SearchForm() {
           <LegForm
             key={i}
             leg={leg}
-            index={i}
+            title={legTitle(i)}
             canRemove={params.legs.length > 1 && params.tripType === "multi-leg"}
             onChange={(updated) => updateLeg(i, updated)}
             onRemove={() => removeLeg(i)}
