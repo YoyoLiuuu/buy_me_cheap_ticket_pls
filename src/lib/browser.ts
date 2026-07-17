@@ -9,10 +9,12 @@ export async function launchBrowser(): Promise<Browser> {
   // Vercel sets VERCEL=1; AWS Lambda sets AWS_LAMBDA_FUNCTION_NAME.
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
     const { default: sparticuz } = await import("@sparticuz/chromium");
+    // sparticuz.headless is the string "shell" (a Puppeteer convention);
+    // Playwright requires a boolean.
     return chromium.launch({
       args: sparticuz.args,
       executablePath: await sparticuz.executablePath(),
-      headless: sparticuz.headless ?? true,
+      headless: true,
     });
   }
 
