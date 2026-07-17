@@ -7,8 +7,8 @@ function getResend(): Resend {
   if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!);
   return _resend;
 }
-const FROM = process.env.EMAIL_FROM ?? "alerts@cheapticket.yoyo.dev";
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://cheapticket.yoyo.dev";
+const FROM = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
 function formatPrice(price: number, currency: string) {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency }).format(price);
