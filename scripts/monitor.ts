@@ -6,7 +6,7 @@
 // Env: DATABASE_URL, RESEND_API_KEY, EMAIL_FROM, NEXT_PUBLIC_BASE_URL
 
 import "dotenv/config";
-import { chromium } from "playwright";
+import { launchBrowser, newStealthContext } from "../src/lib/browser.js";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
@@ -32,11 +32,13 @@ function getFlexDates(leg: LegParams, flexibility: Flexibility): string[] {
     dates.add(format(addDays(earliest, -i), "yyyy-MM-dd"));
     dates.add(format(addDays(latest, i), "yyyy-MM-dd"));
   }
-  return Array.from(dates).sort();
+  // Saved searches outlive their itineraries; don't scrape departure dates in the past.
+  const today = format(new Date(), "yyyy-MM-dd");
+  return Array.from(dates).filter((d) => d >= today).sort();
 }
 
 async function scrapeAllLegs(
-  page: import("playwright").Page,
+  getPage: () => Promise<import("playwright").Page>,
   legs: LegParams[],
   filters: SearchFilters,
   flexibility: Flexibility,
@@ -59,6 +61,7 @@ async function scrapeAllLegs(
           const expandedLeg: LegParams = { ...leg, from: fromCode, to: toCode };
           try {
             console.log(`  Scraping ${fromCode} → ${toCode} on ${date}…`);
+            const page = await getPage();
             const offers = await scrapeFlightsForDate(page, expandedLeg, date, currency, filters);
             if (offers.length > 0) {
               const cheapest = Math.min(...offers.map((o) => o.price));
@@ -111,28 +114,20 @@ async function main() {
   console.log(`Found ${searches.length} active search(es) to monitor.`);
   if (searches.length === 0) { await prisma.$disconnect(); return; }
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-blink-features=AutomationControlled",
-    ],
-  });
+  // Browser can crash mid-run (OOM, network); relaunch it on demand rather than
+  // failing every remaining scrape.
+  let browser = await launchBrowser();
+  let page = await (await newStealthContext(browser)).newPage();
+  const getPage = async () => {
+    if (!browser.isConnected() || page.isClosed()) {
+      console.log("  (browser gone — relaunching)");
+      try { await browser.close(); } catch {}
+      browser = await launchBrowser();
+      page = await (await newStealthContext(browser)).newPage();
+    }
+    return page;
+  };
 
-  const context = await browser.newContext({
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    locale: "en-CA",
-    viewport: { width: 1280, height: 900 },
-  });
-
-  // Mask webdriver flag
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
-  });
-
-  const page = await context.newPage();
   const stats = { checked: 0, alerted: 0, digested: 0, errors: 0, noResults: 0 };
 
   for (const search of searches) {
@@ -142,7 +137,7 @@ async function main() {
       const filters = search.filters as unknown as SearchFilters;
       const flexibility = search.flexibility as Flexibility;
 
-      const legResults = await scrapeAllLegs(page, legs, filters, flexibility, "CAD");
+      const legResults = await scrapeAllLegs(getPage, legs, filters, flexibility, "CAD");
       const cheapestNow = legResults.reduce((s, l) => s + l.absoluteCheapest, 0);
 
       if (cheapestNow === 0) {

@@ -17,8 +17,21 @@ export async function launchBrowser(): Promise<Browser> {
   }
 
   // Traditional server — playwright install chromium must have been run during build.
+  // If system deps (libnss3 etc.) can't be installed with sudo, extracted copies in
+  // ~/.cache/ms-playwright/extra-libs are picked up via LD_LIBRARY_PATH.
+  const { existsSync } = await import("node:fs");
+  const { homedir } = await import("node:os");
+  const extraLibs = `${homedir()}/.cache/ms-playwright/extra-libs`;
+  const env = existsSync(extraLibs)
+    ? {
+        ...process.env,
+        LD_LIBRARY_PATH: [extraLibs, process.env.LD_LIBRARY_PATH].filter(Boolean).join(":"),
+      }
+    : undefined;
+
   return chromium.launch({
     headless: true,
+    env,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",

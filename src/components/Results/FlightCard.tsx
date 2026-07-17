@@ -1,5 +1,5 @@
 "use client";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { AlertTriangle, ArrowRight, Clock, ExternalLink } from "lucide-react";
 import { cn, formatPrice, formatDuration } from "@/lib/utils";
 import type { FlightOffer } from "@/types";
@@ -105,7 +105,7 @@ export function FlightCard({
           )}
         </div>
         <div className="text-right text-sm text-slate-600">
-          <div className="font-medium">{format(new Date(offer.departureDate), "EEE, MMM d")}</div>
+          <div className="font-medium">{format(parseISO(offer.departureDate), "EEE, MMM d")}</div>
           <div className="text-slate-400">{offer.validatingCarrierCode}</div>
         </div>
       </div>
@@ -138,7 +138,7 @@ export function FlightCard({
           {itin.segments.map((seg, i) => (
             <div key={i} className="flex items-center gap-2 text-xs text-slate-600">
               <span className="font-mono font-medium w-6">{seg.carrierCode}</span>
-              <span>{seg.flightNumber}</span>
+              <span>{seg.flightNumber || seg.carrierName}</span>
               <span className="font-medium">{seg.departure.iataCode}</span>
               <ArrowRight size={10} />
               <span className="font-medium">{seg.arrival.iataCode}</span>

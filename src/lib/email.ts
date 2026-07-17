@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import type { LegResult, SearchParams } from "@/types";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -29,7 +29,7 @@ function legSummaryHtml(leg: LegResult, currency: string): string {
       <td style="padding:8px 12px;border-bottom:1px solid #eee;">${formatPrice(o.price, currency)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;">${o.itineraries[0]?.stops === 0 ? "Direct" : `${o.itineraries[0]?.stops} stop(s)`}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;">${formatDuration(o.itineraries[0]?.totalDurationMinutes ?? 0)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;">${format(new Date(o.departureDate), "MMM d")}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;">${format(parseISO(o.departureDate), "MMM d")}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;">${o.validatingCarrierCode}</td>
       ${o.conflictZoneWarnings.length > 0 ? `<td style="padding:8px 12px;border-bottom:1px solid #eee;color:#dc2626;">⚠️ ${o.conflictZoneWarnings.map((w) => w.countryName).join(", ")}</td>` : "<td></td>"}
     </tr>`

@@ -102,8 +102,12 @@ export const AIRPORT_COUNTRY_MAP: Record<string, string> = {
   BKK: "TH", DMK: "TH", // Thailand
   KUL: "MY", // Malaysia
   MNL: "PH", // Philippines
+  TPE: "TW", // Taiwan
+  SZX: "CN", TFU: "CN", XMN: "CN", HGH: "CN", // China (more)
+  HAN: "VN", SGN: "VN", // Vietnam
   YYZ: "CA", YVR: "CA", YUL: "CA", YYC: "CA", YTZ: "CA", // Canada
   JFK: "US", EWR: "US", LAX: "US", ORD: "US", SFO: "US", SEA: "US",
+  DFW: "US", DTW: "US", MSP: "US", ATL: "US", IAH: "US", DEN: "US",
   // IATA metropolitan area codes
   YTO: "CA", SEL: "KR", TYO: "JP", NYC: "US", LON: "GB", BJS: "CN", PAR: "FR", OSA: "JP", STO: "SE", MIL: "IT",
   LHR: "GB", LGW: "GB", MAN: "GB", // UK
@@ -113,4 +117,5 @@ export const AIRPORT_COUNTRY_MAP: Record<string, string> = {
   ZRH: "CH", GVA: "CH", // Switzerland
   VIE: "AT", // Austria
   FCO: "IT", MXP: "IT", // Italy
+  MAD: "ES", LIS: "PT", HEL: "FI", CPH: "DK", WAW: "PL",
 };
