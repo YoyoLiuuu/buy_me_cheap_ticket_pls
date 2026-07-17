@@ -8,6 +8,14 @@ export async function launchBrowser(): Promise<Browser> {
 
   // Vercel sets VERCEL=1; AWS Lambda sets AWS_LAMBDA_FUNCTION_NAME.
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    // sparticuz only extracts its bundled shared libraries (libnss3 etc.) and sets
+    // LD_LIBRARY_PATH when AWS_EXECUTION_ENV / AWS_LAMBDA_JS_RUNTIME look like Lambda.
+    // Vercel doesn't set those, so fake one BEFORE the import (the check runs at
+    // module load) or Chromium dies with "libnss3.so: cannot open shared object file".
+    if (!process.env.AWS_EXECUTION_ENV && !process.env.AWS_LAMBDA_JS_RUNTIME) {
+      const major = parseInt(process.versions.node.split(".")[0], 10);
+      process.env.AWS_LAMBDA_JS_RUNTIME = major >= 22 ? "nodejs22.x" : "nodejs20.x";
+    }
     const { default: sparticuz } = await import("@sparticuz/chromium");
     // sparticuz.headless is the string "shell" (a Puppeteer convention);
     // Playwright requires a boolean.
