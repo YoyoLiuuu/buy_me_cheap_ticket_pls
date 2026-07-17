@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { CONFLICT_ZONES } from "@/lib/conflict-zones";
+import { countryName, searchCountries } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 import type { SearchFilters } from "@/types";
 
@@ -17,6 +18,7 @@ const SEVERITY_COLORS = {
 
 export function LayoverFilters({ filters, onChange }: LayoverFiltersProps) {
   const [showCustom, setShowCustom] = useState(false);
+  const [countryQuery, setCountryQuery] = useState("");
 
   function update(patch: Partial<SearchFilters>) {
     onChange({ ...filters, ...patch });
@@ -131,25 +133,68 @@ export function LayoverFilters({ filters, onChange }: LayoverFiltersProps) {
           )}
         </button>
         {showCustom && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {CONFLICT_ZONES.map((z) => {
-              const selected = filters.customAvoidCountries.includes(z.countryCode);
-              return (
-                <button
-                  key={z.countryCode}
-                  type="button"
-                  onClick={() => toggleCustomCountry(z.countryCode)}
-                  className={cn(
-                    "text-xs px-2 py-1 rounded-full border transition-colors",
-                    selected
-                      ? "bg-sky-600 text-white border-sky-600"
-                      : "bg-white text-slate-600 border-slate-300 hover:border-sky-400"
-                  )}
-                >
-                  {z.countryName}
-                </button>
-              );
-            })}
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-slate-500">
+              Search any country to exclude. Flights with a detected layover there are
+              removed from results (not just flagged).
+            </p>
+
+            {/* Selected countries — click to remove */}
+            {filters.customAvoidCountries.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {filters.customAvoidCountries.map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => toggleCustomCountry(code)}
+                    className="text-xs px-2 py-1 rounded-full border bg-sky-600 text-white border-sky-600 hover:bg-sky-700 flex items-center gap-1"
+                  >
+                    {countryName(code)}
+                    <span aria-hidden className="text-sky-200">✕</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Search box */}
+            <input
+              type="text"
+              value={countryQuery}
+              onChange={(e) => setCountryQuery(e.target.value)}
+              placeholder="Search countries…"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+            />
+
+            {/* Search results */}
+            {countryQuery.trim() && (
+              <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
+                {searchCountries(countryQuery).length === 0 ? (
+                  <p className="text-xs text-slate-400 px-3 py-2">
+                    No countries match &ldquo;{countryQuery}&rdquo;.
+                  </p>
+                ) : (
+                  searchCountries(countryQuery).map((c) => {
+                    const selected = filters.customAvoidCountries.includes(c.code);
+                    return (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => toggleCustomCountry(c.code)}
+                        className={cn(
+                          "w-full text-left text-sm px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition-colors",
+                          selected && "bg-sky-50"
+                        )}
+                      >
+                        <span>
+                          {c.name} <span className="text-slate-400 text-xs">{c.code}</span>
+                        </span>
+                        {selected && <span className="text-sky-600 text-xs font-medium">✓ excluded</span>}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

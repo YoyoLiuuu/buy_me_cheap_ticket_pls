@@ -22,7 +22,11 @@ async function main() {
       { from, to, fromCity: from, toCity: to, earliestDeparture: date, arriveBy: date },
       date,
       "CAD",
-      { avoidConflictZones: false, avoidMiddleEast: false, customAvoidCountries: [] }
+      {
+        avoidConflictZones: false,
+        avoidMiddleEast: false,
+        customAvoidCountries: (process.env.CUSTOM_EXCLUDE ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+      }
     );
     console.log(`\nGot ${offers.length} offers`);
     for (const o of offers.slice(0, 5)) {

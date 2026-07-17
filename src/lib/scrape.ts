@@ -269,10 +269,19 @@ export async function scrapeFlightsForDate(
     }
 
     const warnings: ConflictZoneWarning[] = [];
+    let excludedByCustom = false;
     for (const code of layoverCodes) {
       const countryCode = code.startsWith("INFERRED_")
         ? code.replace("INFERRED_", "")
         : (AIRPORT_COUNTRY_MAP[code] ?? "??");
+
+      // Custom country exclusions are a hard filter: drop the whole offer,
+      // vs. the conflict-zone toggles below which only annotate with warnings.
+      if (filters.customAvoidCountries.includes(countryCode)) {
+        excludedByCustom = true;
+        break;
+      }
+
       const result = checkLayoverConflicts(
         countryCode,
         filters.avoidConflictZones,
@@ -289,6 +298,7 @@ export async function scrapeFlightsForDate(
         });
       }
     }
+    if (excludedByCustom) continue;
 
     const departHHMM = (parsed.departureTime ?? "").slice(11, 16);
     if (leg.earliestDepartureTime && departHHMM && departHHMM < leg.earliestDepartureTime) continue;
