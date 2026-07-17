@@ -241,6 +241,17 @@ export async function scrapeFlightsForDate(
     return results;
   }, { url });
 
+  if (rawData.length === 0) {
+    // Distinguish "no flights that day" from Google serving a consent/bot page
+    // (shows up in Vercel function logs / GitHub Actions output).
+    const title = await page.title().catch(() => "?");
+    const finalUrl = page.url();
+    console.warn(
+      `[scrape] 0 results for ${leg.from}→${leg.to} ${date} — page title: "${title}"` +
+      (finalUrl !== url ? ` (redirected to ${finalUrl.slice(0, 120)})` : "")
+    );
+  }
+
   const offers: FlightOffer[] = [];
 
   for (let i = 0; i < rawData.length; i++) {

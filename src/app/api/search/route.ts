@@ -149,6 +149,9 @@ export async function POST(req: NextRequest) {
             );
 
             for (const result of results) {
+              if (result.status === "rejected") {
+                console.warn(`[search] scrape job failed:`, result.reason);
+              }
               if (result.status === "fulfilled") {
                 const { date, offers } = result.value;
                 if (offers.length > 0) {
