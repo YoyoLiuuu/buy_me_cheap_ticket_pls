@@ -8,6 +8,7 @@ interface AirportSearchProps {
   onChange: (iata: string, city: string, country: string) => void;
   placeholder?: string;
   label?: string;
+  invalid?: boolean;
 }
 
 interface Airport {
@@ -102,7 +103,7 @@ function displayLabel(airport: Airport): string {
   return `${airport.city} (${airport.iata})`;
 }
 
-export function AirportSearch({ value, cityValue, onChange, placeholder, label }: AirportSearchProps) {
+export function AirportSearch({ value, cityValue, onChange, placeholder, label, invalid }: AirportSearchProps) {
   const selected = AIRPORTS.find((a) => a.iata === value);
   const [query, setQuery] = useState(selected ? displayLabel(selected) : "");
   const [open, setOpen] = useState(false);
@@ -116,6 +117,46 @@ export function AirportSearch({ value, cityValue, onChange, placeholder, label }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  // Keep the visible text in sync when the value is set from outside (e.g. "Load
+  // example" or a trip-type swap that swaps from/to). Runs only when `value` changes,
+  // so it never clobbers what the user is actively typing.
+  useEffect(() => {
+    const match = AIRPORTS.find((a) => a.iata === value);
+    if (match) setQuery(displayLabel(match));
+    else if (!value) setQuery("");
+  }, [value]);
+
+  // Resolve free-typed text to an airport so the value isn't silently lost when the
+  // user types a city/code but never clicks a suggestion.
+  function commitFreeText() {
+    const raw = query.trim();
+    if (!raw) {
+      if (value) onChange("", "", "");
+      return;
+    }
+    if (selected && displayLabel(selected).toLowerCase() === raw.toLowerCase()) return;
+
+    const q = raw.toLowerCase();
+    let match =
+      AIRPORTS.find((a) => a.iata.toLowerCase() === q) ??
+      AIRPORTS.find((a) => a.city.toLowerCase() === q);
+    if (!match) {
+      const matches = AIRPORTS.filter(
+        (a) =>
+          a.city.toLowerCase().includes(q) ||
+          a.name.toLowerCase().includes(q) ||
+          a.iata.toLowerCase().includes(q) ||
+          a.airports?.some((code) => code.toLowerCase() === q)
+      );
+      matches.sort((a, b) => (b.isCity ? 1 : 0) - (a.isCity ? 1 : 0));
+      match = matches[0];
+    }
+    if (match) {
+      setQuery(displayLabel(match));
+      onChange(match.iata, match.city, match.country);
+    }
+  }
 
   function handleInput(val: string) {
     setQuery(val);
@@ -153,8 +194,19 @@ export function AirportSearch({ value, cityValue, onChange, placeholder, label }
         value={query}
         onChange={(e) => handleInput(e.target.value)}
         onFocus={() => query.length > 0 && filtered.length > 0 && setOpen(true)}
+        onBlur={commitFreeText}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (open && filtered.length > 0) select(filtered[0]);
+            else commitFreeText();
+          }
+        }}
         placeholder={placeholder ?? "City or airport code"}
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+        className={cn(
+          "w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent",
+          invalid ? "border-red-400 ring-1 ring-red-200" : "border-slate-300"
+        )}
       />
       {open && (
         <ul className="absolute z-50 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg max-h-72 overflow-y-auto">

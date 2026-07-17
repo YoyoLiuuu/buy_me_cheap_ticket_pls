@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, RefreshCw, Loader2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, ExternalLink, X, Laptop } from "lucide-react";
 import { LegResults } from "@/components/Results/LegResults";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
@@ -14,6 +14,8 @@ type StreamChunk =
   | { type: "done"; searchedAt: string; currency: string; flexibility: number }
   | { type: "error"; message: string };
 
+const GITHUB_REPO_URL = "https://github.com/YoyoLiuuu/buy_me_cheap_ticket_pls";
+
 function ResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -24,6 +26,7 @@ function ResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [params, setParams] = useState<SearchParams | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showLocalModal, setShowLocalModal] = useState(false);
 
   const q = searchParams.get("q");
 
@@ -33,6 +36,7 @@ function ResultsContent() {
       setLegs([]);
       setResult(null);
       setError(null);
+      setShowLocalModal(false);
     }
     setStatusMsg("Launching browser...");
 
@@ -127,6 +131,18 @@ function ResultsContent() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
+
+  // When a search finishes with no priced results, nudge the user to run the
+  // (unlimited) local version — but only on the hosted site, where the usual cause
+  // is Vercel's 60s function timeout cutting the scrape short. On localhost an empty
+  // result genuinely means "no flights", so we stay quiet.
+  useEffect(() => {
+    if (loading || refreshing || !params) return;
+    const anyPrices = legs.some((l) => l && l.absoluteCheapest > 0);
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    const isHosted = !/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(host);
+    if (!anyPrices && isHosted) setShowLocalModal(true);
+  }, [loading, refreshing, legs, params]);
 
   const currency = result?.currency ?? params?.currency ?? "CAD";
   const flexibility = result?.flexibility ?? params?.flexibility ?? 0;
@@ -265,6 +281,76 @@ function ResultsContent() {
           </p>
         )}
       </div>
+
+      {/* "Run it locally" modal — shown when a hosted search returns no prices */}
+      {showLocalModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+          onClick={() => setShowLocalModal(false)}
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowLocalModal(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+              <Laptop size={22} />
+            </div>
+
+            <h2 className="mt-4 text-lg font-bold text-slate-900">No prices came back</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This hosted demo runs on a free tier that cuts off any search after{" "}
+              <strong>60 seconds</strong>. Bigger or multi-leg searches get stopped before
+              results come back — so an empty result here usually means it timed out, not that
+              there are no flights.
+            </p>
+            <p className="mt-3 text-sm text-slate-600">
+              To get complete results with <strong>no time limit</strong>, run the app on your
+              own machine — it&apos;s free and takes a few minutes. The README has a step-by-step
+              guide.
+            </p>
+
+            <div className="mt-5 flex flex-col gap-2">
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+              >
+                Set up the local version
+                <ExternalLink size={15} />
+              </a>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => params && streamSearch(params, true)}
+                >
+                  <RefreshCw size={13} className="mr-1.5" />
+                  Try again
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => router.push("/")}
+                >
+                  <ArrowLeft size={13} className="mr-1.5" />
+                  Edit search
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -45,16 +45,18 @@ export function SearchForm() {
   const [digestEnabled, setDigestEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
 
   function loadDefault() {
     setParams(DEFAULT_TRIP);
   }
 
-  function updateLeg(index: number, updated: LegParams) {
+  function updateLeg(index: number, patch: Partial<LegParams>) {
+    setError(null); // clear the "please complete…" banner as soon as they start fixing
     setParams((p) => {
       const legs = [...p.legs];
-      legs[index] = updated;
+      legs[index] = { ...legs[index], ...patch };
       return { ...p, legs };
     });
   }
@@ -107,11 +109,23 @@ export function SearchForm() {
     setLoading(true);
 
     try {
-      // Validate required fields
-      for (const leg of params.legs) {
-        if (!leg.from || !leg.to || !leg.earliestDeparture || !leg.arriveBy) {
-          throw new Error("Please fill in all departure and arrival cities and dates.");
-        }
+      // Validate required fields, naming exactly what's missing on which leg.
+      const problems: string[] = [];
+      params.legs.forEach((leg, i) => {
+        const missing: string[] = [];
+        if (!leg.from) missing.push("departure city");
+        if (!leg.to) missing.push("arrival city");
+        if (!leg.earliestDeparture) missing.push("earliest departure date");
+        if (!leg.arriveBy) missing.push("arrive-by date");
+        if (missing.length) problems.push(`${legTitle(i)} — ${missing.join(", ")}`);
+      });
+      if (problems.length) {
+        setAttemptedSubmit(true);
+        const cityIssue = params.legs.some((l) => !l.from || !l.to);
+        throw new Error(
+          `Please complete: ${problems.join("; ")}.` +
+            (cityIssue ? " Tip: pick a city from the dropdown so its airport is saved." : "")
+        );
       }
 
       const searchPayload = { ...params };
@@ -191,7 +205,8 @@ export function SearchForm() {
             leg={leg}
             title={legTitle(i)}
             canRemove={params.legs.length > 1 && params.tripType === "multi-leg"}
-            onChange={(updated) => updateLeg(i, updated)}
+            showErrors={attemptedSubmit}
+            onChange={(patch) => updateLeg(i, patch)}
             onRemove={() => removeLeg(i)}
           />
         ))}

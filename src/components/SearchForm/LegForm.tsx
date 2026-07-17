@@ -5,19 +5,25 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { LegParams } from "@/types";
 import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LegFormProps {
   leg: LegParams;
   title: string;
   canRemove: boolean;
-  onChange: (updated: LegParams) => void;
+  showErrors?: boolean;
+  onChange: (patch: Partial<LegParams>) => void;
   onRemove: () => void;
 }
 
-export function LegForm({ leg, title, canRemove, onChange, onRemove }: LegFormProps) {
-  function update(patch: Partial<LegParams>) {
-    onChange({ ...leg, ...patch });
-  }
+export function LegForm({ leg, title, canRemove, showErrors, onChange, onRemove }: LegFormProps) {
+  // Pass the patch straight up; the parent merges it into current state. Do NOT
+  // spread `leg` here — two fields committing in the same tick (e.g. an airport
+  // resolving on blur right before a date change) would clobber each other's
+  // update by spreading a stale `leg` snapshot.
+  const update = onChange;
+
+  const invalidClass = "border-red-400 ring-1 ring-red-200";
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4">
@@ -40,6 +46,7 @@ export function LegForm({ leg, title, canRemove, onChange, onRemove }: LegFormPr
           cityValue={leg.fromCity}
           onChange={(iata, city) => update({ from: iata, fromCity: city })}
           placeholder="Departure city"
+          invalid={showErrors && !leg.from}
         />
         <AirportSearch
           label="To"
@@ -47,6 +54,7 @@ export function LegForm({ leg, title, canRemove, onChange, onRemove }: LegFormPr
           cityValue={leg.toCity}
           onChange={(iata, city) => update({ to: iata, toCity: city })}
           placeholder="Arrival city"
+          invalid={showErrors && !leg.to}
         />
       </div>
 
@@ -58,6 +66,7 @@ export function LegForm({ leg, title, canRemove, onChange, onRemove }: LegFormPr
             type="date"
             value={leg.earliestDeparture}
             onChange={(e) => update({ earliestDeparture: e.target.value })}
+            className={cn(showErrors && !leg.earliestDeparture && invalidClass)}
           />
         </div>
         <div>
@@ -66,6 +75,7 @@ export function LegForm({ leg, title, canRemove, onChange, onRemove }: LegFormPr
             type="date"
             value={leg.arriveBy}
             onChange={(e) => update({ arriveBy: e.target.value })}
+            className={cn(showErrors && !leg.arriveBy && invalidClass)}
           />
         </div>
       </div>
