@@ -6,7 +6,7 @@ Find the cheapest flights with flexible date ranges, conflict-zone layover filte
 
 ### Option 1 — Hosted demo (quick look)
 
-**Live demo:** https://<your-app>.vercel.app  <!-- replace with your Vercel URL -->
+**Live demo:** https://buy-me-cheap-ticket-pls.vercel.app 
 
 Good for clicking around the UI and running a **small, single-leg search**.
 
